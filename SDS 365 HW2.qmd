@@ -1,0 +1,240 @@
+---
+title: "SDS 365 HW2 PCA Image Compression"
+author: "Jaida Metwalli"
+format: html
+editor: visual
+---
+
+```{r}
+library(readr)
+x <- read_csv("HW2imagefiles/image1.csv")
+x <- data.matrix(x)
+dim(x)
+```
+
+# Image Compression Function
+
+```{r}
+image_compress <- function(x, k) {
+  V <- t(x) %*% x
+  eigen_decomp <- eigen(V)
+  U <- eigen_decomp$vectors
+  Z <- x %*% U
+  U_k <- U[, 1:k, drop = FALSE]
+  Z_k <- Z[, 1:k, drop = FALSE]
+  x_approx <- Z_k %*% t(U_k)
+  error <- norm(x - x_approx, type = "F")
+   return(list(
+    approximation = x_approx,
+    error = error ))
+}
+```
+
+```{r}
+#making sure funtion works
+result <- image_compress(x, 1)
+result$error
+```
+
+## **IMAGE #1** 
+
+```{r}
+# set up plots
+par(mfrow = c(3, 4))
+# original image
+image(t(x), col = gray.colors(256), axes = FALSE, main = "Original")
+# approximations for k = 1 through 10
+for (k in 1:10) {
+  result <- image_compress(x, k)
+  image(t(result$approximation),
+        col = gray.colors(256),
+        axes = FALSE,
+        main = paste("k =", k)) }
+```
+
+```{r}
+# calculate error for each k
+errors <- numeric(ncol(x))
+
+for (k in 1:ncol(x)) {
+  result <- image_compress(x, k)
+  errors[k] <- result$error }
+# plot approximation error
+plot(1:ncol(x), errors, type = "l", xlab = "k", ylab = "Approximation Error", main = "Approximation Error vs. k")
+```
+
+```{r}
+# calculate eigenvectors and PC scores
+V <- t(x) %*% x
+eigen_decomp <- eigen(V)
+U <- eigen_decomp$vectors
+Z <- x %*% U
+# get the first eigenvector and first PC score
+u1 <- U[, 1]
+z1 <- Z[, 1]
+# two plots next to each other
+par(mfrow = c(1, 2))
+
+plot(u1,type = "l", xlab = "Column", ylab = "Eigenvector Value", main = "First Eigenvector")
+plot(z1, type = "l", xlab = "Row", ylab = "PC Score", main = "First PC Score")
+```
+
+The first eigenvector is close to zero for most columns, with one large spike near column 78. This indicates that the first principal component is mainly influenced by variation in that column. The first PC scores show how strongly each row of the image aligns with the first principal component. The scores stay around a similar level across the rows, with repeated peaks and dips.
+
+I think k = 5 provides a sufficiently good approximation of Image 1. By k = 5, the main features of the original image are already visible, and increasing k only produces small visual improvements.
+
+## **IMAGE #2**
+
+```{r}
+x2 <- read_csv("HW2imagefiles/image2.csv")
+x2 <- data.matrix(x2)
+dim(x2)
+```
+
+```{r}
+par(mfrow = c(3, 4))
+# original image
+image(t(x2), col = gray.colors(256), axes = FALSE, main = "Original")
+# approximations for k = 1 through 10
+for (k in 1:10) {
+  result <- image_compress(x2, k)
+  
+  image(t(result$approximation),
+        col = gray.colors(256),
+        axes = FALSE,
+        main = paste("k =", k)) }
+```
+
+```{r}
+# calculate error for each k
+errors2 <- numeric(ncol(x2))
+
+for (k in 1:ncol(x2)) {
+  result <- image_compress(x2, k)
+  errors2[k] <- result$error }
+
+# plot approximation error
+plot( 1:ncol(x2), errors2, type = "l", xlab = "k", ylab = "Approximation Error",  main = "Image 2: Approximation Error vs. k")
+```
+
+```{r}
+V2 <- t(x2) %*% x2
+eigen_decomp2 <- eigen(V2)
+
+U2 <- eigen_decomp2$vectors
+Z2 <- x2 %*% U2
+u1_2 <- U2[, 1]
+z1_2 <- Z2[, 1]
+
+par(mfrow = c(1, 2))
+
+plot(u1_2, type = "l",  xlab = "Column", ylab = "Eigenvector Value", main = "Image 2: First Eigenvector")
+plot( z1_2, type = "l", xlab = "Row", ylab = "PC Score", main = "Image 2: First PC Score")
+```
+
+The first eigenvector decreases steadily across the columns, indicating that the first principal component captures a gradual change across the image columns. The first PC scores vary substantially across the rows, showing that the strength of this pattern differs from row to row.
+
+I think k=2 provides a sufficiently good approximation of Image 2 because the approximation error is already very close to zero and there is little visual improvement when additional components are added.
+
+## **IMAGE #3**
+
+```{r}
+x3 <- read_csv("HW2imagefiles/image3.csv")
+x3 <- data.matrix(x3)
+dim(x3)
+```
+
+```{r}
+par(mfrow = c(3, 4))
+# original image
+image(t(x3), col = gray.colors(256), axes = FALSE, main = "Original")
+
+# approximations for k = 1 through 10
+for (k in 1:10) {
+  result <- image_compress(x3, k)
+  image(t(result$approximation),
+        col = gray.colors(256),
+        axes = FALSE,
+        main = paste("k =", k)) }
+```
+
+```{r}
+errors3 <- numeric(ncol(x3))
+
+for (k in 1:ncol(x3)) {
+  result <- image_compress(x3, k)
+  errors3[k] <- result$error }
+
+plot( 1:ncol(x3), errors3, type = "l",  xlab = "k", ylab = "Approximation Error", main = "Image 3: Approximation Error vs. k")
+```
+
+```{r}
+V3 <- t(x3) %*% x3
+eigen_decomp3 <- eigen(V3)
+
+U3 <- eigen_decomp3$vectors
+Z3 <- x3 %*% U3
+u1_3 <- U3[, 1]
+z1_3 <- Z3[, 1]
+
+par(mfrow = c(1, 2))
+
+plot( u1_3, type = "l",  xlab = "Column",  ylab = "Eigenvector Value", main = "Image 3: First Eigenvector")
+plot( z1_3, type = "l", xlab = "Row", ylab = "PC Score", main = "Image 3: First PC Score")
+```
+
+The first eigenvector varies across the columns, showing that different parts of the image contribute differently to the first principal component. The first PC scores also change substantially across the rows, indicating that the strength of this dominant image pattern varies throughout the image.
+
+I think k=10 provides a sufficiently good approximation of Image 3. At k=10, the main features of the original image are clearly recognizable, while using a small number of all possible principal components.
+
+## 
+**IMAGE #4**
+
+```{r}
+x4 <- read_csv("HW2imagefiles/image4.csv")
+x4 <- data.matrix(x4)
+dim(x4)
+```
+
+```{r}
+par(mfrow = c(3, 4))
+
+# original image
+image(t(x4), col = gray.colors(256), axes = FALSE, main = "Original")
+
+# approximations for k = 1 through 10
+for (k in 1:10) {
+  result <- image_compress(x4, k)
+  
+  image(t(result$approximation),
+        col = gray.colors(256),
+        axes = FALSE,
+        main = paste("k =", k)) }
+```
+
+```{r}
+errors4 <- numeric(ncol(x4))
+for (k in 1:ncol(x4)) {
+  result <- image_compress(x4, k)
+  errors4[k] <- result$error }
+
+plot( 1:ncol(x4),  errors4, type = "l", xlab = "k", ylab = "Approximation Error", main = "Image 4: Approximation Error vs. k")
+```
+
+```{r}
+V4 <- t(x4) %*% x4
+eigen_decomp4 <- eigen(V4)
+
+U4 <- eigen_decomp4$vectors
+Z4 <- x4 %*% U4
+u1_4 <- U4[, 1]
+z1_4 <- Z4[, 1]
+par(mfrow = c(1, 2))
+
+plot( u1_4, type = "l", xlab = "Column", ylab = "Eigenvector Value",  main = "Image 4: First Eigenvector")
+plot( z1_4, type = "l", xlab = "Row", ylab = "PC Score", main = "Image 4: First PC Score")
+```
+
+The first eigenvector has its largest dip around the middle columns, showing that this area has the strongest influence on the first principal component. The first PC scores also have a noticeable drop around the middle rows, suggesting that this pattern is much stronger in some parts of the image than others.
+
+I think k = 10 provides a sufficiently good approximation of Image 4. The image becomes much clearer as k increases, and by k = 10, most of the details in the original image can be seen.
